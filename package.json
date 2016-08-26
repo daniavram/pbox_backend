@@ -29,6 +29,9 @@
     "debug": "node debug app.js",
     "start": "sails lift"
   },
+  "engines": {
+    "node": "6.1.0"
+  },
   "main": "app.js",
   "repository": {
     "type": "git",
