@@ -15,7 +15,6 @@ module.exports = {
       destinationLongitude : { type : 'float' },
       destinationAddress : { type : 'string' },
       packageSize : { type : 'string' },
-      pboxId : { type : 'array' },
       status : { type : 'string' },
       
       boxes : {

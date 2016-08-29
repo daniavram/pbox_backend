@@ -17,9 +17,15 @@ client.on('connect', function () {
     
 client.on('message', function(topic, message) {
     
-    var boxId = topic.match(/.*?\/(\w+)\/asset\//);
-    if (boxId != null) {
-        boxController.boxButtonPressed(boxId[1]);
+    var boxIdRegex = topic.match(/.*?\/(\w+)\/asset\//);
+    var messageString = message.toString();
+    var valueRegex = messageString.match(/.*?\"Value\":(\d).*?/);
+    
+    if (boxIdRegex != null && valueRegex[1] == 1) {
+        boxController.resumePickupDelivery(boxIdRegex[1]);
+    }
+    if (boxIdRegex != null && valueRegex[1] == 0) {
+        boxController.pausePickupDelivery(boxIdRegex[1]);
     }
     
 });
