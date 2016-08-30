@@ -22,11 +22,11 @@ function _removeBoxFromPickup(req, res) {
     
     sails.models.pickup.findOne({id: pickupIdFromReq}).populate('boxes').then(function(findResult){
         if (findResult.status == "IN PROGRESS") {
-            return res.serverError('Cannot delete Box from an IN PROGRESS Pickup');
+            return res.send('Cannot delete Box from an IN PROGRESS Pickup');
         } else {
             var localStatus = "";
             if (findResult.status == "READY") {
-                if (boxes.length > 1) {
+                if (findResult.boxes.length > 1) {
                     localStatus = "READY";
                 } else {
                     localStatus = "DRAFT";
@@ -41,6 +41,15 @@ function _removeBoxFromPickup(req, res) {
                 sails.models.pickup.update({id: pickupIdFromReq}, {status: localStatus}).then(function(updatedPickup) {
                     console.log('Pickup ' + pickupIdFromReq + ' removed from Box ' + boxIdFromReq);
                     findResult.status = localStatus;
+                    var tempBoxes = findResult.boxes;
+                    tempBoxes.find(function(element) {
+                        if (element) {
+                            if (element.boxId == boxIdFromReq) {
+                                tempBoxes.splice(tempBoxes.indexOf(element), 1);
+                            }
+                        }
+                    });
+                    findResult.boxes = tempBoxes;
                     return res.json(findResult);
                 });
             });
@@ -56,7 +65,7 @@ function _removePickup(req, res) {
                 return res.json(result);
             });
         } else {
-            return res.serverError('Cannot delete Pickup');
+            return res.send('Cannot delete Pickup ' + findResult.id + '. Status is ' + findResult.status);
         }
     });
         
@@ -129,7 +138,7 @@ function _updateDestination(req, res) {
                 return res.json(findResult);
             });
         } else {
-            res.serverError('Cannot update destination of Pickup. Status not IDLE');
+            res.send('Cannot update destination of Pickup. Status not IDLE');
         }
         
     });       
@@ -145,15 +154,19 @@ function _addBoxToPickup(req, res) {
             sails.models.box.update({boxId: boxIdFromReq, pickupOrder: null}, {pickupOrder: pickupIdFromReq}).then(function(updated){
                 if (updated.length > 0) {
                     sails.models.pickup.update({id: pickupIdFromReq}, {status: "READY"}).then(function(result){
+                        console.log('Box ' + boxIdFromReq + ' added to Pickup ' + pickupIdFromReq);
                         findResult.status = "READY";
+                        findResult.boxes.push(updated[0]);
                         return res.json(findResult);
                     });
                 } else {
-                    return res.serverError('Cannot add Box ' + boxIdFromReq + ' to Pickup ' + pickupIdFromReq);
+                    console.log('Cannot add Box ' + boxIdFromReq + ' to Pickup ' + pickupIdFromReq);
+                    return res.send('Cannot add Box ' + boxIdFromReq + ' to Pickup ' + pickupIdFromReq);
                 }
             });
         } else {
-            res.serverError('Invalid opperation. Cannot add Box to a Pickup which is not DRAFT or READY');
+            console.log('Invalid opperation. Cannot add Box ' + boxIdFromReq + ' to Pickup ' + pickupIdFromReq + ' which is not DRAFT or READY');
+            return res.send('Invalid opperation. Cannot add Box to a Pickup which is not DRAFT or READY');
         }
     });
 }
@@ -164,7 +177,7 @@ function _getBoxesFromPickup(req, res) {
         if (result) {
             return res.json(result.boxes);   
         } else {
-            return res.serverError('Pickup with ID ' + req.params.pickupModelId + ' not found in database');
+            return res.send('Pickup with ID ' + req.params.pickupModelId + ' not found in database');
         }
     });
 }

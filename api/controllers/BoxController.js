@@ -34,7 +34,11 @@ function _createBox(req, res) {
 function _getBoxById(req, res) {
     
     sails.models.box.findOne({boxId: req.params.boxId}).then(function(result){
-        return res.json(result);
+        if (result) {
+            return res.json(result);
+        } else {
+            return res.send('No Box with ID ' + req.params.boxId + ' found');
+        }
     });
 }
 
@@ -44,15 +48,19 @@ function _getPickupForBox(req, res) {
         if (result.pickupOrder) {
             return res.json(result.pickupOrder);
         } else {
-            return res.serverError('No Box with ID ' + req.params.boxId + ' found');
+            return res.send('No Pickup attached to Box ' + req.params.boxId);
         }
     });
 }
 
 function _removeBoxById(req, res) {
     
-    sails.models.box.destroy({boxId: req.params.boxId, pickupOrder: null}).then(function(result){
-        return res.json(result);
+    sails.models.box.destroy({boxId: req.params.boxId, pickupOrder: null}).then(function(results){
+        if (results.length > 0) {
+            return res.json(result);
+        } else {
+            return res.send('Cannot delete Box ' + req.params.boxId);
+        }
     });
 }
 
