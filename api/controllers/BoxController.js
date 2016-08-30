@@ -57,7 +57,7 @@ function _removeBoxById(req, res) {
     
     sails.models.box.destroy({boxId: req.params.boxId, pickupOrder: null}).then(function(results){
         if (results.length > 0) {
-            return res.json(result);
+            return res.json(results);
         } else {
             return res.send('Cannot delete Box ' + req.params.boxId);
         }
